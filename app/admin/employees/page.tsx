@@ -12,7 +12,7 @@ export default function EmployeesPage() {
         <main className="flex-1">
 
           {/* HEADER */}
-          <header className="border-b bg-white px-6 py-5 md:px-8">
+          <header className="border-b bg-white px-6 py-5 pl-20 md:px-8">
             <h2 className="text-2xl font-bold text-gray-900">
               Employees
             </h2>

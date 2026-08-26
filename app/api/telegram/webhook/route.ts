@@ -3,11 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   sendTelegramMessage,
   answerCallbackQuery,
-  editTelegramMessage,
 } from "@/lib/telegram";
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
-
 
 // ============================================
 // TYPES
@@ -46,7 +44,6 @@ type TelegramUpdate = {
   callback_query?: TelegramCallbackQuery;
 };
 
-
 // ============================================
 // HELPERS
 // ============================================
@@ -59,7 +56,6 @@ function getManilaDate() {
     day: "2-digit",
   }).format(new Date());
 }
-
 
 function formatManilaTime(date: string | Date | null) {
   if (!date) {
@@ -74,7 +70,6 @@ function formatManilaTime(date: string | Date | null) {
   }).format(new Date(date));
 }
 
-
 function formatManilaDate(date: string) {
   const parsed = new Date(`${date}T00:00:00+08:00`);
 
@@ -86,6 +81,26 @@ function formatManilaDate(date: string) {
   }).format(parsed);
 }
 
+function getDisplayName(user: TelegramUser) {
+  const fullName = [
+    user.first_name,
+    user.last_name,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return fullName || user.username || "Unknown User";
+}
+
+function getUsername(user: TelegramUser) {
+  return user.username
+    ? `@${user.username}`
+    : getDisplayName(user);
+}
+
+// ============================================
+// ATTENDANCE KEYBOARD
+// ============================================
 
 function attendanceKeyboard() {
   return {
@@ -120,26 +135,6 @@ function attendanceKeyboard() {
   };
 }
 
-
-function getDisplayName(user: TelegramUser) {
-  const fullName = [
-    user.first_name,
-    user.last_name,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return fullName || user.username || "Unknown User";
-}
-
-
-function getUsername(user: TelegramUser) {
-  return user.username
-    ? `@${user.username}`
-    : getDisplayName(user);
-}
-
-
 // ============================================
 // EMPLOYEE
 // ============================================
@@ -156,6 +151,7 @@ async function getOrCreateEmployee(user: TelegramUser) {
     throw findError;
   }
 
+  // Existing employee
   if (existing) {
     const { data: updated, error } =
       await supabaseAdmin
@@ -177,6 +173,7 @@ async function getOrCreateEmployee(user: TelegramUser) {
     return updated;
   }
 
+  // New employee
   const { data: created, error } =
     await supabaseAdmin
       .from("employees")
@@ -196,9 +193,8 @@ async function getOrCreateEmployee(user: TelegramUser) {
   return created;
 }
 
-
 // ============================================
-// SEND MENU
+// SEND ATTENDANCE MENU
 // ============================================
 
 async function sendAttendanceMenu(
@@ -208,7 +204,7 @@ async function sendAttendanceMenu(
   const name = getDisplayName(user);
 
   const text =
-    `🕐 <b>ATTENDANCE</b>\n\n` +
+    `🕐 <b>LABRADOR ATTENDANCE</b>\n\n` +
     `Hello, <b>${name}</b>!\n\n` +
     `Choose an action below:`;
 
@@ -218,7 +214,6 @@ async function sendAttendanceMenu(
     attendanceKeyboard()
   );
 }
-
 
 // ============================================
 // TIME IN
@@ -301,7 +296,6 @@ async function handleTimeIn(
       `🕐 ${formatManilaTime(now)}`
   );
 }
-
 
 // ============================================
 // START BREAK
@@ -390,7 +384,6 @@ async function handleBreakStart(
   );
 }
 
-
 // ============================================
 // END BREAK
 // ============================================
@@ -470,7 +463,6 @@ async function handleBreakEnd(
   );
 }
 
-
 // ============================================
 // STATUS
 // ============================================
@@ -522,9 +514,11 @@ async function handleStatus(
         return (
           `Break ${index + 1}: ` +
           `${formatManilaTime(item.break_start)} - ` +
-          `${item.break_end
-            ? formatManilaTime(item.break_end)
-            : "ONGOING"}`
+          `${
+            item.break_end
+              ? formatManilaTime(item.break_end)
+              : "ONGOING"
+          }`
         );
       })
       .join("\n");
@@ -548,7 +542,6 @@ async function handleStatus(
       }`
   );
 }
-
 
 // ============================================
 // TIME OUT + RECEIPT
@@ -604,13 +597,15 @@ async function handleTimeOut(
   }
 
   // Check active break
-  const { data: activeBreak, error: activeBreakError } =
-    await supabaseAdmin
-      .from("attendance_breaks")
-      .select("*")
-      .eq("attendance_id", attendance.id)
-      .is("break_end", null)
-      .maybeSingle();
+  const {
+    data: activeBreak,
+    error: activeBreakError,
+  } = await supabaseAdmin
+    .from("attendance_breaks")
+    .select("*")
+    .eq("attendance_id", attendance.id)
+    .is("break_end", null)
+    .maybeSingle();
 
   if (activeBreakError) {
     throw activeBreakError;
@@ -663,9 +658,11 @@ async function handleTimeOut(
         return (
           `Break ${index + 1}: ` +
           `${formatManilaTime(item.break_start)} - ` +
-          `${item.break_end
-            ? formatManilaTime(item.break_end)
-            : "ONGOING"}`
+          `${
+            item.break_end
+              ? formatManilaTime(item.break_end)
+              : "ONGOING"
+          }`
         );
       })
       .join("\n");
@@ -693,7 +690,6 @@ async function handleTimeOut(
   );
 }
 
-
 // ============================================
 // CALLBACK HANDLER
 // ============================================
@@ -701,10 +697,9 @@ async function handleTimeOut(
 async function handleCallbackQuery(
   callback: TelegramCallbackQuery
 ) {
-  const data = callbackQueryData(callback);
+  const data = callback.data || "";
 
-  const chatId =
-    callback.message?.chat.id;
+  const chatId = callback.message?.chat.id;
 
   if (!chatId) {
     await answerCallbackQuery(
@@ -715,6 +710,11 @@ async function handleCallbackQuery(
     return;
   }
 
+  // IMPORTANT:
+  // callback.from is ALWAYS the Telegram user
+  // who actually clicked the button.
+  const user = callback.from;
+
   await answerCallbackQuery(
     callback.id
   );
@@ -723,35 +723,35 @@ async function handleCallbackQuery(
     case "time_in":
       await handleTimeIn(
         chatId,
-        callback.from
+        user
       );
       break;
 
     case "time_out":
       await handleTimeOut(
         chatId,
-        callback.from
+        user
       );
       break;
 
     case "break_start":
       await handleBreakStart(
         chatId,
-        callback.from
+        user
       );
       break;
 
     case "break_end":
       await handleBreakEnd(
         chatId,
-        callback.from
+        user
       );
       break;
 
     case "status":
       await handleStatus(
         chatId,
-        callback.from
+        user
       );
       break;
 
@@ -759,14 +759,6 @@ async function handleCallbackQuery(
       break;
   }
 }
-
-
-function callbackQueryData(
-  callback: TelegramCallbackQuery
-) {
-  return callback.data || "";
-}
-
 
 // ============================================
 // COMMAND HANDLER
@@ -779,37 +771,69 @@ async function handleMessage(
     return;
   }
 
-  const text = message.text.trim().toLowerCase();
+  const text = message.text
+    .trim()
+    .toLowerCase();
+
+  const user = message.from;
+  const chatId = message.chat.id;
 
   switch (text) {
-    case "/start":
-    case "/attendance":
-    case "/timein":
+    case "/start": {
+      // First time or existing user.
+      // This makes sure the employee exists.
+      await getOrCreateEmployee(user);
+
       await sendAttendanceMenu(
-        message.chat.id,
-        message.from
+        chatId,
+        user
       );
-      break;
 
-    case "/status":
-      await handleStatus(
-        message.chat.id,
-        message.from
+      break;
+    }
+
+    case "/attendance": {
+      await getOrCreateEmployee(user);
+
+      await sendAttendanceMenu(
+        chatId,
+        user
       );
-      break;
 
-    case "/timeout":
+      break;
+    }
+
+    case "/timein": {
+      await handleTimeIn(
+        chatId,
+        user
+      );
+
+      break;
+    }
+
+    case "/timeout": {
       await handleTimeOut(
-        message.chat.id,
-        message.from
+        chatId,
+        user
       );
+
       break;
+    }
+
+    case "/status": {
+      await handleStatus(
+        chatId,
+        user
+      );
+
+      break;
+    }
 
     default:
       break;
   }
 }
-
 
 // ============================================
 // WEBHOOK POST
@@ -822,11 +846,19 @@ export async function POST(
     const update =
       (await request.json()) as TelegramUpdate;
 
+    // ========================================
+    // BUTTON CLICK
+    // ========================================
+
     if (update.callback_query) {
       await handleCallbackQuery(
         update.callback_query
       );
     }
+
+    // ========================================
+    // MESSAGE / COMMAND
+    // ========================================
 
     if (update.message) {
       await handleMessage(
@@ -852,7 +884,6 @@ export async function POST(
     );
   }
 }
-
 
 // ============================================
 // GET

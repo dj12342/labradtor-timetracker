@@ -205,7 +205,6 @@ async function sendAttendanceMenu(
 
   const text =
     `🕐 <b>LABRADOR ATTENDANCE</b>\n\n` +
-    `Hello, <b>${name}</b>!\n\n` +
     `Choose an action below:`;
 
   await sendTelegramMessage(

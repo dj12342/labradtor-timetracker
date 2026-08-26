@@ -17,7 +17,7 @@ type BreakRecord = {
 };
 
 type Attendance = {
-  id: number;
+  id: string;
   attendance_date: string;
   time_in: string | null;
   time_out: string | null;
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
             </h1>
 
             <p className="text-sm text-gray-500">
-              TimeTrack
+              DTR
             </p>
           </div>
 
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
 
             <a
               href="/admin"
-              className="block rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white"
+              className="block rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white hover:bg-green-700"
             >
               Dashboard
             </a>
@@ -208,18 +208,10 @@ export default function AdminDashboard() {
               Reports
             </a>
 
-          </nav>
-
-          {/* LOGOUT */}
-          <div className="border-t p-4">
-
-            <p className="mb-2 px-4 text-xs text-gray-500">
-              Administrator
-            </p>
-
+            {/* LOGOUT */}
             <LogoutButton />
 
-          </div>
+          </nav>
 
         </aside>
 
@@ -237,7 +229,7 @@ export default function AdminDashboard() {
                 </h2>
 
                 <p className="mt-1 text-sm text-gray-500">
-                  Labrador TimeTrack Attendance System
+                  Labrador DTR Attendance System
                 </p>
               </div>
 
@@ -258,92 +250,52 @@ export default function AdminDashboard() {
               {/* EMPLOYEES */}
               <div className="rounded-xl border bg-white p-6 shadow-sm">
 
-                <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-500">
+                  Employees
+                </p>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">
-                      Employees
-                    </p>
-
-                    <p className="mt-2 text-3xl font-bold text-gray-900">
-                      {loading ? "..." : totalEmployees}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-gray-100 p-3 text-xl">
-                    👥
-                  </div>
-
-                </div>
+                <p className="mt-2 text-3xl font-bold text-gray-900">
+                  {loading ? "..." : totalEmployees}
+                </p>
 
               </div>
 
               {/* TIME IN */}
               <div className="rounded-xl border bg-white p-6 shadow-sm">
 
-                <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-500">
+                  Time In Today
+                </p>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">
-                      Time In Today
-                    </p>
-
-                    <p className="mt-2 text-3xl font-bold text-gray-900">
-                      {loading ? "..." : timeInToday}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-green-100 p-3 text-xl">
-                    🟢
-                  </div>
-
-                </div>
+                <p className="mt-2 text-3xl font-bold text-gray-900">
+                  {loading ? "..." : timeInToday}
+                </p>
 
               </div>
 
               {/* BREAK */}
               <div className="rounded-xl border bg-white p-6 shadow-sm">
 
-                <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-500">
+                  On Break
+                </p>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">
-                      On Break
-                    </p>
-
-                    <p className="mt-2 text-3xl font-bold text-gray-900">
-                      {loading ? "..." : onBreakToday}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-yellow-100 p-3 text-xl">
-                    🍴
-                  </div>
-
-                </div>
+                <p className="mt-2 text-3xl font-bold text-gray-900">
+                  {loading ? "..." : onBreakToday}
+                </p>
 
               </div>
 
               {/* TIME OUT */}
               <div className="rounded-xl border bg-white p-6 shadow-sm">
 
-                <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-500">
+                  Time Out
+                </p>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">
-                      Time Out
-                    </p>
-
-                    <p className="mt-2 text-3xl font-bold text-gray-900">
-                      {loading ? "..." : timeOutToday}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-blue-100 p-3 text-xl">
-                    🔵
-                  </div>
-
-                </div>
+                <p className="mt-2 text-3xl font-bold text-gray-900">
+                  {loading ? "..." : timeOutToday}
+                </p>
 
               </div>
 
@@ -432,17 +384,11 @@ export default function AdminDashboard() {
 
                       todayAttendance.map((record) => {
 
-                        const onBreak =
-                          isOnBreak(record);
+                        const onBreak = isOnBreak(record);
+                        const completed = !!record.time_out;
 
-                        const completed =
-                          !!record.time_out;
-
-                        const employee =
-                          record.employees;
-
-                        const breaks =
-                          record.attendance_breaks || [];
+                        const employee = record.employees;
+                        const breaks = record.attendance_breaks || [];
 
                         return (
                           <tr
@@ -502,7 +448,7 @@ export default function AdminDashboard() {
                               <span
                                 className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
                                   completed
-                                    ? "bg-blue-100 text-blue-700"
+                                    ? "bg-green-100 text-green-700"
                                     : onBreak
                                       ? "bg-yellow-100 text-yellow-700"
                                       : "bg-green-100 text-green-700"
@@ -511,7 +457,7 @@ export default function AdminDashboard() {
                                 {completed
                                   ? "Completed"
                                   : onBreak
-                                    ? "On Break"
+                                    ? "Eating"
                                     : "Working"}
                               </span>
 

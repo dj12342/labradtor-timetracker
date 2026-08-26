@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import LogoutButton from "@/components/LogoutButton";
 
 type Employee = {
   telegram_id: number;
@@ -58,6 +59,12 @@ export default function AttendancePage() {
 
   useEffect(() => {
     loadAttendance();
+
+    const interval = setInterval(() => {
+      loadAttendance();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   function getEmployeeName(employee: Employee) {
@@ -72,14 +79,13 @@ export default function AttendancePage() {
   }
 
   function formatDate(date: string) {
-    return new Date(`${date}T00:00:00+08:00`).toLocaleDateString(
-      "en-PH",
-      {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }
-    );
+    return new Date(
+      `${date}T00:00:00+08:00`
+    ).toLocaleDateString("en-PH", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   }
 
   function formatTime(date: string | null) {
@@ -95,16 +101,29 @@ export default function AttendancePage() {
   }
 
   function getStatus(record: AttendanceRecord) {
+
     if (record.time_out) {
       return {
-        label: "Complete",
+        label: "Completed",
         className: "bg-green-100 text-green-700",
+      };
+    }
+
+    const activeBreak =
+      record.attendance_breaks?.some(
+        (item) => !item.break_end
+      );
+
+    if (activeBreak) {
+      return {
+        label: "Eating",
+        className: "bg-yellow-100 text-yellow-700",
       };
     }
 
     if (record.time_in) {
       return {
-        label: "In Progress",
+        label: "Working",
         className: "bg-blue-100 text-blue-700",
       };
     }
@@ -116,9 +135,11 @@ export default function AttendancePage() {
   }
 
   const filteredRecords = records.filter((record) => {
+
     const employee = record.employees;
 
-    const name = getEmployeeName(employee).toLowerCase();
+    const name =
+      getEmployeeName(employee).toLowerCase();
 
     const username =
       employee.telegram_username?.toLowerCase() || "";
@@ -141,26 +162,23 @@ export default function AttendancePage() {
       <div className="flex min-h-screen">
 
         {/* SIDEBAR */}
-
-        <aside className="w-64 bg-white border-r">
+        <aside className="hidden w-64 flex-col border-r bg-white md:flex">
 
           {/* BRAND */}
-
-          <div className="p-6 border-b">
+          <div className="border-b p-6">
 
             <h1 className="text-xl font-bold text-gray-900">
               Labrador
             </h1>
 
             <p className="text-sm text-gray-500">
-              TimeTrack
+              DTR
             </p>
 
           </div>
 
           {/* NAVIGATION */}
-
-          <nav className="p-4 space-y-2">
+          <nav className="flex-1 space-y-2 p-4">
 
             <a
               href="/admin"
@@ -171,7 +189,7 @@ export default function AttendancePage() {
 
             <a
               href="/admin/attendance"
-              className="block rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white"
+              className="block rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white hover:bg-green-700"
             >
               Attendance
             </a>
@@ -190,34 +208,33 @@ export default function AttendancePage() {
               Reports
             </a>
 
+            {/* LOGOUT */}
+            <LogoutButton />
+
           </nav>
 
         </aside>
 
         {/* MAIN */}
-
         <main className="flex-1">
 
           {/* HEADER */}
-
-          <header className="bg-white border-b px-8 py-5">
+          <header className="border-b bg-white px-6 py-5 md:px-8">
 
             <h2 className="text-2xl font-bold text-gray-900">
               Attendance
             </h2>
 
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="mt-1 text-sm text-gray-500">
               Daily employee attendance records
             </p>
 
           </header>
 
           {/* CONTENT */}
-
-          <div className="p-8">
+          <div className="p-6 md:p-8">
 
             {/* TOP BAR */}
-
             <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
               <div>
@@ -244,21 +261,21 @@ export default function AttendancePage() {
             </div>
 
             {/* SEARCH */}
-
             <div className="mb-6">
 
               <input
                 type="text"
                 placeholder="Search employee, username, or Telegram ID..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) =>
+                  setSearch(e.target.value)
+                }
                 className="w-full max-w-lg rounded-lg border bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-300"
               />
 
             </div>
 
             {/* TABLE */}
-
             <div className="overflow-hidden rounded-xl border bg-white">
 
               <div className="overflow-x-auto">
@@ -335,13 +352,17 @@ export default function AttendancePage() {
 
                       filteredRecords.map((record) => {
 
-                        const status = getStatus(record);
+                        const status =
+                          getStatus(record);
 
                         const employeeName =
-                          getEmployeeName(record.employees);
+                          getEmployeeName(
+                            record.employees
+                          );
 
                         const username =
-                          record.employees.telegram_username;
+                          record.employees
+                            .telegram_username;
 
                         return (
 
@@ -351,7 +372,6 @@ export default function AttendancePage() {
                           >
 
                             {/* EMPLOYEE */}
-
                             <td className="px-6 py-4">
 
                               <div className="font-medium text-gray-900">
@@ -361,55 +381,36 @@ export default function AttendancePage() {
                             </td>
 
                             {/* TELEGRAM */}
-
                             <td className="px-6 py-4">
 
                               <div className="text-sm text-gray-700">
-
                                 {username
                                   ? `@${username}`
                                   : "No username"}
-
                               </div>
 
                               <div className="text-xs text-gray-400">
-                                ID: {record.employees.telegram_id}
+                                ID:{" "}
+                                {record.employees.telegram_id}
                               </div>
 
                             </td>
 
                             {/* DATE */}
-
                             <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
-
                               {formatDate(
                                 record.attendance_date
                               )}
-
                             </td>
 
                             {/* TIME IN */}
-
-                            <td className="whitespace-nowrap px-6 py-4">
-
-                              {record.time_in ? (
-
-                                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                                  {formatTime(record.time_in)}
-                                </span>
-
-                              ) : (
-
-                                <span className="text-sm text-gray-400">
-                                  --
-                                </span>
-
+                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
+                              {formatTime(
+                                record.time_in
                               )}
-
                             </td>
 
                             {/* BREAKS */}
-
                             <td className="px-6 py-4">
 
                               {record.attendance_breaks.length ===
@@ -424,25 +425,36 @@ export default function AttendancePage() {
                                 <div className="space-y-1">
 
                                   <div className="text-sm font-medium text-gray-700">
+
                                     {
-                                      record.attendance_breaks
+                                      record
+                                        .attendance_breaks
                                         .length
                                     }{" "}
                                     break
-                                    {record.attendance_breaks
+                                    {record
+                                      .attendance_breaks
                                       .length !== 1
                                       ? "s"
                                       : ""}
+
                                   </div>
 
                                   <div className="text-xs text-gray-500">
 
                                     {record.attendance_breaks.map(
-                                      (item, index) => (
+                                      (
+                                        item,
+                                        index
+                                      ) => (
 
-                                        <div key={item.id}>
-
-                                          Break {index + 1}:{" "}
+                                        <div
+                                          key={
+                                            item.id
+                                          }
+                                        >
+                                          Break{" "}
+                                          {index + 1}:{" "}
                                           {formatTime(
                                             item.break_start
                                           )}{" "}
@@ -452,7 +464,6 @@ export default function AttendancePage() {
                                                 item.break_end
                                               )
                                             : "Ongoing"}
-
                                         </div>
 
                                       )
@@ -467,31 +478,17 @@ export default function AttendancePage() {
                             </td>
 
                             {/* TIME OUT */}
-
-                            <td className="whitespace-nowrap px-6 py-4">
-
-                              {record.time_out ? (
-
-                                <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
-                                  {formatTime(record.time_out)}
-                                </span>
-
-                              ) : (
-
-                                <span className="text-sm text-gray-400">
-                                  --
-                                </span>
-
+                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
+                              {formatTime(
+                                record.time_out
                               )}
-
                             </td>
 
                             {/* STATUS */}
-
                             <td className="px-6 py-4">
 
                               <span
-                                className={`rounded-full px-3 py-1 text-xs font-medium ${status.className}`}
+                                className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${status.className}`}
                               >
                                 {status.label}
                               </span>

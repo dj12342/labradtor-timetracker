@@ -2,17 +2,33 @@
 
 import { useEffect, useState } from "react";
 
-type AttendanceLog = {
-  id: number;
-  telegram_id: string;
+type Employee = {
+  telegram_id: number;
   telegram_username: string | null;
-  full_name: string;
-  action: "TIME_IN" | "BREAK" | "RESUME" | "TIME_OUT";
-  recorded_at: string;
+  first_name: string | null;
+  last_name: string | null;
+};
+
+type AttendanceBreak = {
+  id: string;
+  break_start: string;
+  break_end: string | null;
+};
+
+type AttendanceRecord = {
+  id: string;
+  employee_id: string;
+  attendance_date: string;
+  time_in: string | null;
+  time_out: string | null;
+  created_at: string;
+  updated_at: string;
+  employees: Employee;
+  attendance_breaks: AttendanceBreak[];
 };
 
 export default function AttendancePage() {
-  const [logs, setLogs] = useState<AttendanceLog[]>([]);
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
@@ -20,14 +36,21 @@ export default function AttendancePage() {
     try {
       setLoading(true);
 
-      const response = await fetch("/api/attendance");
+      const response = await fetch("/api/attendance", {
+        cache: "no-store",
+      });
+
       const result = await response.json();
 
       if (result.success) {
-        setLogs(result.data);
+        setRecords(result.data || []);
+      } else {
+        console.error("Attendance API error:", result.error);
+        setRecords([]);
       }
     } catch (error) {
       console.error("Failed to load attendance:", error);
+      setRecords([]);
     } finally {
       setLoading(false);
     }
@@ -37,63 +60,80 @@ export default function AttendancePage() {
     loadAttendance();
   }, []);
 
-  const filteredLogs = logs.filter((log) =>
-    log.full_name.toLowerCase().includes(search.toLowerCase())
-  );
+  function getEmployeeName(employee: Employee) {
+    const name = [
+      employee.first_name,
+      employee.last_name,
+    ]
+      .filter(Boolean)
+      .join(" ");
 
-  function formatDate(date: string) {
-    return new Date(date).toLocaleDateString("en-PH", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return name || "Unknown Employee";
   }
 
-  function formatTime(date: string) {
+  function formatDate(date: string) {
+    return new Date(`${date}T00:00:00+08:00`).toLocaleDateString(
+      "en-PH",
+      {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }
+    );
+  }
+
+  function formatTime(date: string | null) {
+    if (!date) {
+      return "--";
+    }
+
     return new Date(date).toLocaleTimeString("en-PH", {
-      hour: "2-digit",
+      hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
   }
 
-  function actionLabel(action: string) {
-    switch (action) {
-      case "TIME_IN":
-        return "Time In";
-
-      case "BREAK":
-        return "Break";
-
-      case "RESUME":
-        return "Resume";
-
-      case "TIME_OUT":
-        return "Time Out";
-
-      default:
-        return action;
+  function getStatus(record: AttendanceRecord) {
+    if (record.time_out) {
+      return {
+        label: "Complete",
+        className: "bg-green-100 text-green-700",
+      };
     }
+
+    if (record.time_in) {
+      return {
+        label: "In Progress",
+        className: "bg-blue-100 text-blue-700",
+      };
+    }
+
+    return {
+      label: "Not Started",
+      className: "bg-gray-100 text-gray-700",
+    };
   }
 
-  function actionClass(action: string) {
-    switch (action) {
-      case "TIME_IN":
-        return "bg-green-100 text-green-700";
+  const filteredRecords = records.filter((record) => {
+    const employee = record.employees;
 
-      case "BREAK":
-        return "bg-yellow-100 text-yellow-700";
+    const name = getEmployeeName(employee).toLowerCase();
 
-      case "RESUME":
-        return "bg-blue-100 text-blue-700";
+    const username =
+      employee.telegram_username?.toLowerCase() || "";
 
-      case "TIME_OUT":
-        return "bg-red-100 text-red-700";
+    const telegramId =
+      employee.telegram_id?.toString() || "";
 
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  }
+    const query = search.toLowerCase();
+
+    return (
+      name.includes(query) ||
+      username.includes(query) ||
+      telegramId.includes(query)
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -104,7 +144,10 @@ export default function AttendancePage() {
 
         <aside className="w-64 bg-white border-r">
 
+          {/* BRAND */}
+
           <div className="p-6 border-b">
+
             <h1 className="text-xl font-bold text-gray-900">
               Labrador
             </h1>
@@ -112,7 +155,10 @@ export default function AttendancePage() {
             <p className="text-sm text-gray-500">
               TimeTrack
             </p>
+
           </div>
+
+          {/* NAVIGATION */}
 
           <nav className="p-4 space-y-2">
 
@@ -127,7 +173,7 @@ export default function AttendancePage() {
               href="/admin/attendance"
               className="block rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white"
             >
-              Attendance Logs
+              Attendance
             </a>
 
             <a
@@ -157,11 +203,11 @@ export default function AttendancePage() {
           <header className="bg-white border-b px-8 py-5">
 
             <h2 className="text-2xl font-bold text-gray-900">
-              Attendance Logs
+              Attendance
             </h2>
 
             <p className="text-sm text-gray-500 mt-1">
-              View employee attendance activity
+              Daily employee attendance records
             </p>
 
           </header>
@@ -170,16 +216,43 @@ export default function AttendancePage() {
 
           <div className="p-8">
 
+            {/* TOP BAR */}
+
+            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+
+              <div>
+
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Attendance Records
+                </h3>
+
+                <p className="text-sm text-gray-500">
+                  {records.length} attendance record
+                  {records.length !== 1 ? "s" : ""}
+                </p>
+
+              </div>
+
+              <button
+                onClick={loadAttendance}
+                disabled={loading}
+                className="rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+              >
+                {loading ? "Refreshing..." : "Refresh"}
+              </button>
+
+            </div>
+
             {/* SEARCH */}
 
             <div className="mb-6">
 
               <input
                 type="text"
-                placeholder="Search employee..."
+                placeholder="Search employee, username, or Telegram ID..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full max-w-md rounded-lg border bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-300"
+                className="w-full max-w-lg rounded-lg border bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-300"
               />
 
             </div>
@@ -196,24 +269,32 @@ export default function AttendancePage() {
 
                     <tr>
 
-                      <th className="px-6 py-4 text-sm font-semibold">
+                      <th className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-700">
                         Employee
                       </th>
 
-                      <th className="px-6 py-4 text-sm font-semibold">
-                        Action
+                      <th className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-700">
+                        Telegram
                       </th>
 
-                      <th className="px-6 py-4 text-sm font-semibold">
-                        Time
-                      </th>
-
-                      <th className="px-6 py-4 text-sm font-semibold">
+                      <th className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-700">
                         Date
                       </th>
 
-                      <th className="px-6 py-4 text-sm font-semibold">
-                        Telegram
+                      <th className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-700">
+                        Time In
+                      </th>
+
+                      <th className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-700">
+                        Breaks
+                      </th>
+
+                      <th className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-700">
+                        Time Out
+                      </th>
+
+                      <th className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-700">
+                        Status
                       </th>
 
                     </tr>
@@ -227,75 +308,201 @@ export default function AttendancePage() {
                       <tr>
 
                         <td
-                          colSpan={5}
+                          colSpan={7}
                           className="px-6 py-12 text-center text-gray-500"
                         >
-                          Loading attendance...
+                          Loading attendance records...
                         </td>
 
                       </tr>
 
-                    ) : filteredLogs.length === 0 ? (
+                    ) : filteredRecords.length === 0 ? (
 
                       <tr>
 
                         <td
-                          colSpan={5}
+                          colSpan={7}
                           className="px-6 py-12 text-center text-gray-500"
                         >
-                          No attendance records found.
+                          {search
+                            ? "No matching attendance records found."
+                            : "No attendance records found."}
                         </td>
 
                       </tr>
 
                     ) : (
 
-                      filteredLogs.map((log) => (
+                      filteredRecords.map((record) => {
 
-                        <tr
-                          key={log.id}
-                          className="border-b last:border-0 hover:bg-gray-50"
-                        >
+                        const status = getStatus(record);
 
-                          <td className="px-6 py-4">
+                        const employeeName =
+                          getEmployeeName(record.employees);
 
-                            <div className="font-medium text-gray-900">
-                              {log.full_name}
-                            </div>
+                        const username =
+                          record.employees.telegram_username;
 
-                          </td>
+                        return (
 
-                          <td className="px-6 py-4">
+                          <tr
+                            key={record.id}
+                            className="border-b last:border-0 hover:bg-gray-50"
+                          >
 
-                            <span
-                              className={`rounded-full px-3 py-1 text-xs font-medium ${actionClass(
-                                log.action
-                              )}`}
-                            >
-                              {actionLabel(log.action)}
-                            </span>
+                            {/* EMPLOYEE */}
 
-                          </td>
+                            <td className="px-6 py-4">
 
-                          <td className="px-6 py-4 text-sm text-gray-700">
-                            {formatTime(log.recorded_at)}
-                          </td>
+                              <div className="font-medium text-gray-900">
+                                {employeeName}
+                              </div>
 
-                          <td className="px-6 py-4 text-sm text-gray-700">
-                            {formatDate(log.recorded_at)}
-                          </td>
+                            </td>
 
-                          <td className="px-6 py-4 text-sm text-gray-500">
+                            {/* TELEGRAM */}
 
-                            {log.telegram_username
-                              ? `@${log.telegram_username}`
-                              : log.telegram_id}
+                            <td className="px-6 py-4">
 
-                          </td>
+                              <div className="text-sm text-gray-700">
 
-                        </tr>
+                                {username
+                                  ? `@${username}`
+                                  : "No username"}
 
-                      ))
+                              </div>
+
+                              <div className="text-xs text-gray-400">
+                                ID: {record.employees.telegram_id}
+                              </div>
+
+                            </td>
+
+                            {/* DATE */}
+
+                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
+
+                              {formatDate(
+                                record.attendance_date
+                              )}
+
+                            </td>
+
+                            {/* TIME IN */}
+
+                            <td className="whitespace-nowrap px-6 py-4">
+
+                              {record.time_in ? (
+
+                                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                                  {formatTime(record.time_in)}
+                                </span>
+
+                              ) : (
+
+                                <span className="text-sm text-gray-400">
+                                  --
+                                </span>
+
+                              )}
+
+                            </td>
+
+                            {/* BREAKS */}
+
+                            <td className="px-6 py-4">
+
+                              {record.attendance_breaks.length ===
+                              0 ? (
+
+                                <span className="text-sm text-gray-400">
+                                  None
+                                </span>
+
+                              ) : (
+
+                                <div className="space-y-1">
+
+                                  <div className="text-sm font-medium text-gray-700">
+                                    {
+                                      record.attendance_breaks
+                                        .length
+                                    }{" "}
+                                    break
+                                    {record.attendance_breaks
+                                      .length !== 1
+                                      ? "s"
+                                      : ""}
+                                  </div>
+
+                                  <div className="text-xs text-gray-500">
+
+                                    {record.attendance_breaks.map(
+                                      (item, index) => (
+
+                                        <div key={item.id}>
+
+                                          Break {index + 1}:{" "}
+                                          {formatTime(
+                                            item.break_start
+                                          )}{" "}
+                                          -{" "}
+                                          {item.break_end
+                                            ? formatTime(
+                                                item.break_end
+                                              )
+                                            : "Ongoing"}
+
+                                        </div>
+
+                                      )
+                                    )}
+
+                                  </div>
+
+                                </div>
+
+                              )}
+
+                            </td>
+
+                            {/* TIME OUT */}
+
+                            <td className="whitespace-nowrap px-6 py-4">
+
+                              {record.time_out ? (
+
+                                <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                                  {formatTime(record.time_out)}
+                                </span>
+
+                              ) : (
+
+                                <span className="text-sm text-gray-400">
+                                  --
+                                </span>
+
+                              )}
+
+                            </td>
+
+                            {/* STATUS */}
+
+                            <td className="px-6 py-4">
+
+                              <span
+                                className={`rounded-full px-3 py-1 text-xs font-medium ${status.className}`}
+                              >
+                                {status.label}
+                              </span>
+
+                            </td>
+
+                          </tr>
+
+                        );
+
+                      })
 
                     )}
 

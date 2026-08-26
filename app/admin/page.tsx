@@ -250,52 +250,92 @@ export default function AdminDashboard() {
               {/* EMPLOYEES */}
               <div className="rounded-xl border bg-white p-6 shadow-sm">
 
-                <p className="text-sm font-medium text-gray-500">
-                  Employees
-                </p>
+                <div className="flex items-center justify-between">
 
-                <p className="mt-2 text-3xl font-bold text-gray-900">
-                  {loading ? "..." : totalEmployees}
-                </p>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Employees
+                    </p>
+
+                    <p className="mt-2 text-3xl font-bold text-gray-900">
+                      {loading ? "..." : totalEmployees}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-gray-100 p-3 text-xl">
+                    👥
+                  </div>
+
+                </div>
 
               </div>
 
               {/* TIME IN */}
               <div className="rounded-xl border bg-white p-6 shadow-sm">
 
-                <p className="text-sm font-medium text-gray-500">
-                  Time In Today
-                </p>
+                <div className="flex items-center justify-between">
 
-                <p className="mt-2 text-3xl font-bold text-gray-900">
-                  {loading ? "..." : timeInToday}
-                </p>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Time In Today
+                    </p>
+
+                    <p className="mt-2 text-3xl font-bold text-gray-900">
+                      {loading ? "..." : timeInToday}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-green-100 p-3 text-xl">
+                    🟢
+                  </div>
+
+                </div>
 
               </div>
 
               {/* BREAK */}
               <div className="rounded-xl border bg-white p-6 shadow-sm">
 
-                <p className="text-sm font-medium text-gray-500">
-                  On Break
-                </p>
+                <div className="flex items-center justify-between">
 
-                <p className="mt-2 text-3xl font-bold text-gray-900">
-                  {loading ? "..." : onBreakToday}
-                </p>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      On Break
+                    </p>
+
+                    <p className="mt-2 text-3xl font-bold text-gray-900">
+                      {loading ? "..." : onBreakToday}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-yellow-100 p-3 text-xl">
+                    🍴
+                  </div>
+
+                </div>
 
               </div>
 
               {/* TIME OUT */}
               <div className="rounded-xl border bg-white p-6 shadow-sm">
 
-                <p className="text-sm font-medium text-gray-500">
-                  Time Out
-                </p>
+                <div className="flex items-center justify-between">
 
-                <p className="mt-2 text-3xl font-bold text-gray-900">
-                  {loading ? "..." : timeOutToday}
-                </p>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Time Out
+                    </p>
+
+                    <p className="mt-2 text-3xl font-bold text-gray-900">
+                      {loading ? "..." : timeOutToday}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-blue-100 p-3 text-xl">
+                    🔵
+                  </div>
+
+                </div>
 
               </div>
 
@@ -451,7 +491,7 @@ export default function AdminDashboard() {
                                     ? "bg-green-100 text-green-700"
                                     : onBreak
                                       ? "bg-yellow-100 text-yellow-700"
-                                      : "bg-green-100 text-green-700"
+                                      : "bg-blue-100 text-blue-700"
                                 }`}
                               >
                                 {completed

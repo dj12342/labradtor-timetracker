@@ -30,7 +30,20 @@ export async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Protect all /admin routes
+  // ============================================
+  // ROOT → LOGIN
+  // ============================================
+
+  if (pathname === "/") {
+    return NextResponse.redirect(
+      new URL("/login", request.url)
+    );
+  }
+
+  // ============================================
+  // PROTECT ADMIN ROUTES
+  // ============================================
+
   if (pathname.startsWith("/admin") && !user) {
     const loginUrl = request.nextUrl.clone();
 
@@ -40,7 +53,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Already logged in
+  // ============================================
+  // ALREADY LOGGED IN → ADMIN
+  // ============================================
+
   if (pathname === "/login" && user) {
     return NextResponse.redirect(
       new URL("/admin", request.url)
@@ -52,6 +68,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/admin/:path*",
     "/login",
   ],

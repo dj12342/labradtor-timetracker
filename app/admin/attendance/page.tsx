@@ -222,12 +222,10 @@ export default function AttendancePage() {
           <header className="border-b bg-white px-6 py-5 md:px-8">
 
             <h2 className="text-2xl font-bold text-gray-900">
-              Attendance
+              Attendance Records
             </h2>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Daily employee attendance records
-            </p>
+            
 
           </header>
 

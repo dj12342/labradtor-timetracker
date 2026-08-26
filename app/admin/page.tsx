@@ -228,9 +228,6 @@ export default function AdminDashboard() {
                   Dashboard
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-500">
-                  Labrador DTR Attendance System
-                </p>
               </div>
 
               <div className="text-sm text-gray-500">

@@ -40,40 +40,34 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
 
       <div className="w-full max-w-md">
 
-        <div className="text-center mb-8">
+        <div className="rounded-2xl border bg-white p-8 shadow-sm">
 
-          <h1 className="text-3xl font-bold text-gray-900">
-            Labrador
-          </h1>
+          {/* LOGIN HEADER */}
+          <div className="mb-6 text-center">
 
-          <p className="text-gray-500 mt-1">
-            TimeTrack
-          </p>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Admin Login
+            </h2>
 
-        </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Sign in to access the Labrador TimeTrack dashboard.
+            </p>
 
-        <div className="bg-white border rounded-2xl p-8 shadow-sm">
-
-          <h2 className="text-xl font-semibold text-gray-900">
-            Admin Login
-          </h2>
-
-          <p className="text-sm text-gray-500 mt-1 mb-6">
-            Sign in to access the Labrador TimeTrack dashboard.
-          </p>
+          </div>
 
           <form
             onSubmit={handleLogin}
             className="space-y-5"
           >
 
+            {/* EMAIL */}
             <div>
 
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 Email
               </label>
 
@@ -90,9 +84,10 @@ export default function LoginPage() {
 
             </div>
 
+            {/* PASSWORD */}
             <div>
 
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 Password
               </label>
 
@@ -109,12 +104,14 @@ export default function LoginPage() {
 
             </div>
 
+            {/* ERROR */}
             {error && (
               <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
                 {error}
               </div>
             )}
 
+            {/* SIGN IN */}
             <button
               type="submit"
               disabled={loading}

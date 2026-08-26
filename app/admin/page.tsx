@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import LogoutButton from "@/components/LogoutButton";
+import AdminSidebar from "@/components/AdminSidebar";
 
 type Employee = {
   telegram_id: number;
@@ -164,56 +164,7 @@ export default function AdminDashboard() {
       <div className="flex min-h-screen">
 
         {/* SIDEBAR */}
-        <aside className="hidden w-64 flex-col border-r bg-white md:flex">
-
-          {/* BRAND */}
-          <div className="border-b p-6">
-            <h1 className="text-xl font-bold text-gray-900">
-              Labrador
-            </h1>
-
-            <p className="text-sm text-gray-500">
-              DTR
-            </p>
-          </div>
-
-          {/* NAVIGATION */}
-          <nav className="flex-1 space-y-2 p-4">
-
-            <a
-              href="/admin"
-              className="block rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white hover:bg-green-700"
-            >
-              Dashboard
-            </a>
-
-            <a
-              href="/admin/attendance"
-              className="block rounded-lg px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              Attendance
-            </a>
-
-            <a
-              href="/admin/employees"
-              className="block rounded-lg px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              Employees
-            </a>
-
-            <a
-              href="/admin/reports"
-              className="block rounded-lg px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              Reports
-            </a>
-
-            {/* LOGOUT */}
-            <LogoutButton />
-
-          </nav>
-
-        </aside>
+        <AdminSidebar />
 
         {/* MAIN */}
         <main className="flex-1">
@@ -227,7 +178,6 @@ export default function AdminDashboard() {
                 <h2 className="text-2xl font-bold text-gray-900">
                   Dashboard
                 </h2>
-
               </div>
 
               <div className="text-sm text-gray-500">

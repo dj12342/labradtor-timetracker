@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import LogoutButton from "@/components/LogoutButton";
+import AdminSidebar from "@/components/AdminSidebar";
 
 type Employee = {
   telegram_id: number;
@@ -101,7 +101,6 @@ export default function AttendancePage() {
   }
 
   function getStatus(record: AttendanceRecord) {
-
     if (record.time_out) {
       return {
         label: "Completed",
@@ -162,58 +161,7 @@ export default function AttendancePage() {
       <div className="flex min-h-screen">
 
         {/* SIDEBAR */}
-        <aside className="hidden w-64 flex-col border-r bg-white md:flex">
-
-          {/* BRAND */}
-          <div className="border-b p-6">
-
-            <h1 className="text-xl font-bold text-gray-900">
-              Labrador
-            </h1>
-
-            <p className="text-sm text-gray-500">
-              DTR
-            </p>
-
-          </div>
-
-          {/* NAVIGATION */}
-          <nav className="flex-1 space-y-2 p-4">
-
-            <a
-              href="/admin"
-              className="block rounded-lg px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              Dashboard
-            </a>
-
-            <a
-              href="/admin/attendance"
-              className="block rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white hover:bg-green-700"
-            >
-              Attendance
-            </a>
-
-            <a
-              href="/admin/employees"
-              className="block rounded-lg px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              Employees
-            </a>
-
-            <a
-              href="/admin/reports"
-              className="block rounded-lg px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              Reports
-            </a>
-
-            {/* LOGOUT */}
-            <LogoutButton />
-
-          </nav>
-
-        </aside>
+        <AdminSidebar />
 
         {/* MAIN */}
         <main className="flex-1">
@@ -224,8 +172,6 @@ export default function AttendancePage() {
             <h2 className="text-2xl font-bold text-gray-900">
               Attendance Records
             </h2>
-
-            
 
           </header>
 

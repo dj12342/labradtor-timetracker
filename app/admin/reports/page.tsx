@@ -11,19 +11,19 @@ export default function ReportsPage() {
 
         <main className="flex-1">
 
-          {/* HEADER */}
+        
           <header className="border-b bg-white px-6 py-5 pl-20 md:px-8">
             <h2 className="text-2xl font-bold text-gray-900">
               Reports
             </h2>
           </header>
 
-          {/* CONTENT */}
+    
           <div className="flex min-h-[calc(100vh-89px)] items-center justify-center p-6 md:p-8">
 
             <div className="text-center">
 
-              {/* ANIMATED SETTINGS ICON */}
+          
               <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gray-200">
                 <svg
                   className="h-12 w-12 animate-spin text-gray-600"

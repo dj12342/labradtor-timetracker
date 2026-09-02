@@ -7,9 +7,6 @@ import {
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-// ============================================
-// TYPES
-// ============================================
 
 type TelegramUser = {
   id: number;
@@ -43,10 +40,6 @@ type TelegramUpdate = {
   message?: TelegramMessage;
   callback_query?: TelegramCallbackQuery;
 };
-
-// ============================================
-// HELPERS
-// ============================================
 
 function getManilaDate() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -98,9 +91,7 @@ function getUsername(user: TelegramUser) {
     : getDisplayName(user);
 }
 
-// ============================================
-// ATTENDANCE KEYBOARD
-// ============================================
+
 
 function attendanceKeyboard() {
   return {
